@@ -17,7 +17,7 @@ Fitness Warehouse is a full-stack E-Commerce Application fully equipped with Pro
 * [FontAwesome](https://fontawesome.com/)
 * [Redux](https://redux.js.org/)
 * [Bootstrap](https://getbootstrap.com/)
-* [Axios](https://axios-http.com/)
+* [Axios](https://getbootstrap.com/)
 
 
 
@@ -49,3 +49,12 @@ Redux = Working to handle state of cart and products
 - Store products displayed in a list with filter option
 - Ability to add multiple items to cart 
 - Checkout items from cart with Stripe transactions
+
+
+
+
+
+
+
+
+
