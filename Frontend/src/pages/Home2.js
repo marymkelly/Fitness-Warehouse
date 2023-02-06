@@ -63,7 +63,7 @@ try {
 
 return (
 <>
-    <Navbar />
+    {/* <Navbar /> */}
 
         {/* Header */}
         <h2 className="text-center mt-5 improv m-3" >Hello</h2>
@@ -140,7 +140,7 @@ return (
         <div style={{ display: "flex", justifyContent: "center" }}>
             <Button className="graphic2 btn-1 mx-2 mb-5" style={{color:'black', fontWeight: 'bold', width: '19.5vw'}} onClick={logOut}>Logout</Button>
         </div>
-    <Footer />
+    {/* <Footer /> */}
 </>
 )
 }

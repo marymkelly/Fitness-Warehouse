@@ -16,7 +16,8 @@ import { useDispatch } from "react-redux";
 import { addCart } from "../redux/action";
 
 // Import Product Information Data
-import data from "../components/data.json";
+// import data from "../components/data.json";
+import data from "../components/updateddata.json";
 
 // Footer & Navbar
 import { Footer, Navbar } from "../components";
@@ -39,7 +40,9 @@ const Product = () => {
   const [similarProducts, setSimilarProducts] = useState([]);
   const dispatch = useDispatch();
 
-  useEffect(() => {
+  console.log('data', data)
+  
+  useEffect(() => {    
     
     // searches through the data array and finds the product that matches the id passed in the URL. It then sets the 'product' state variable to this product.
     const foundProduct = data.find((item) => item.id === Number(id));
@@ -231,7 +234,7 @@ const ShowSimilarProduct = () => {
   return (
     <>
       {/* Navbar */}
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="container">
 
         {/* Show Product */}
@@ -257,7 +260,7 @@ const ShowSimilarProduct = () => {
       </div>
 
       {/* Footer */}
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 };

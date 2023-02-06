@@ -244,7 +244,7 @@ const Cart = () => {
     <>
 
       {/* Navbar */}
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="container my-3 py-3">
         {/* Cart Header */}
         <h1 className="text-center improv" data-aos="flip-up">Shopping Cart</h1>
@@ -254,7 +254,7 @@ const Cart = () => {
       </div>
 
       {/* Footer */}
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 };

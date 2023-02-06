@@ -54,7 +54,7 @@ try {
 return <>
 
         {/* Navbar */}
-        <Navbar />
+        {/* <Navbar /> */}
 
         {/* Header */}
         <h1 className="text-center mt-5 improv" data-aos="zoom-out-up" >Signup</h1>
@@ -104,7 +104,7 @@ return <>
         </Card>
 
         {/* Footer */}
-        <Footer />
+        {/* <Footer /> */}
     </>
 }
 

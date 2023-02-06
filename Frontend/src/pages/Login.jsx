@@ -108,7 +108,7 @@ const onSubmit = async (event) => {
 return <>
 
     {/* Navbar */}
-    <Navbar />
+    {/* <Navbar /> */}
 
     {/* Header */}
     <h1 className="text-center mt-5 improv" data-aos="zoom-out-up" >Log In</h1>
@@ -156,7 +156,7 @@ return <>
     </Card>
 
     {/* Footer */}
-    <Footer />
+    {/* <Footer /> */}
   </>
 }
 

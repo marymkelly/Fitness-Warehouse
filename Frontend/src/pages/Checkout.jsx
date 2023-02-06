@@ -112,16 +112,18 @@ const Checkout = () => {
 										url: "http://localhost:3001/checkout",
 										data: {
 											products,
+											shipping,
 										},
-									});
+									}).catch((error) => error.response);
 
 									// Should see the response we sent back from the server in the browser console
 									console.log("RESPONSE FROM SERVER: ", response);
-									if(response.data.url) {
+									if (response.data.url) {
+										// save local storage state 
 										let decoded = decodeURI(response.data.url);
 										window.location.assign(decoded);
-										
-										console.log('DECODED', decoded);
+
+										console.log("DECODED", decoded);
 									}
 								}}>
 								Confirm Checkout
@@ -195,7 +197,7 @@ const Checkout = () => {
 	return (
 		<>
 			{/* Navbar */}
-			<Navbar />
+			{/* <Navbar /> */}
 			<div className='container my-3 py-3'>
 				{/* Header */}
 				<h1 className='text-center improv' data-aos='flip-up'>
@@ -208,7 +210,7 @@ const Checkout = () => {
 			</div>
 
 			{/* Footer */}
-			<Footer />
+			{/* <Footer /> */}
 		</>
 	);
 };

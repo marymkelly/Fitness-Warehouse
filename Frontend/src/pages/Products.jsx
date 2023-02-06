@@ -14,9 +14,9 @@ Individual Product Page
 const Products = () => {
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <Product />
-      <Footer />
+      {/* <Footer /> */}
     </>
   )
 }

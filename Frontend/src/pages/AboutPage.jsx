@@ -29,7 +29,7 @@ const AboutPage = () => {
   return (
     <>
       {/* Navbar Section */}
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="container my-3 py-3">
 
         {/* Company Text History */}
@@ -363,7 +363,7 @@ const AboutPage = () => {
       </div>
 
       {/* Footer */}
-      <Footer />
+      {/* <Footer /> */}
     </>
   )
 }

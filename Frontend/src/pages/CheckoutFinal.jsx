@@ -8,9 +8,9 @@ const CheckoutFinal = () => {
 
 return (
 <>
-    <Navbar />
+    {/* <Navbar /> */}
     <p>Hello</p>
-    <Footer />
+    {/* <Footer /> */}
 </>
 );
 };

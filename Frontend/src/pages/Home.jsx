@@ -14,10 +14,10 @@ Home Page
 function Home() {
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <Main />
       <Preview />
-      <Footer />
+      {/* <Footer /> */}
     </>
   )
 }

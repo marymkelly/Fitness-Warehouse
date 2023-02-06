@@ -29,7 +29,7 @@ const ContactPage = () => {
   return (
     <>
       {/* Navbar */}
-      <Navbar />
+      {/* <Navbar /> */}
 
     <section id="contact">
     
@@ -179,7 +179,7 @@ const ContactPage = () => {
   </div>
 
       {/* Footer */}
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 };
