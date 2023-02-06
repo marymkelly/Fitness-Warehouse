@@ -62,12 +62,54 @@ app.post("/CheckoutFinal", async (req, res) => {
 app.post("/checkout", async (req, res) => {
 	// Data sent from frontend axios request in data param is accessed on req.body
 	console.log("REQUEST DATA: ", req.body);
-    // console.log should be visible in your server terminal
+	console.log("REQUEST QUERY: ", req.query);
+	// console.log should be visible in your server terminal
 
 	// you would likely want to handle stripe here and now have access to the data sent over
+	const session = await stripe.checkout.sessions.create({
+		line_items: [
+			{
+				// Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+				price: "price_1MUDxLIpd7r3Fnqn0XEraHVs",
+				quantity: "1",
+			},
+		],
+		mode: "payment",
+		success_url: `http://localhost:3001/checkout/success`,
+		cancel_url: `http://localhost:3001/checkout/cancel`,
+		// success_url: `${YOUR_DOMAIN}?success=true`,
+		// cancel_url: `${YOUR_DOMAIN}?canceled=true`,
+		automatic_tax: { enabled: true },
+	});
+
+	console.log("SESSION: ", session);
+	// res.redirect(303, session.url);
+	// send back successful status of 200 and whatever data we want to send back -- so an object with message in this case
+	res.status(200).json({ message: "Success", url: session.url, id: session.id });
+});
+
+app.post("/checkout/items", async (req, res) => {
+	// Data sent from frontend axios request in data param is accessed on req.body
+	console.log("REQUEST DATA: ", req.body);
+
+	let session;
+
+	if (res?.body?.id) {
+		session = await stripe.checkout.sessions.retrieve(res.body.id);
+	}
+
+	console.log("SESSION ITEMS: ", session);
 
 	// send back successful status of 200 and whatever data we want to send back -- so an object with message in this case
-	res.status(200).json({ message: "Success" });
+	res.status(200).json({ message: "Session Items", items: session.data });
+});
+
+app.get("/checkout/success", async (req, res) => {
+	res.status(200).send("Success");
+});
+
+app.get("/checkout/cancel", async (req, res) => {
+	res.status(200).send("Cancelled");
 });
 
 const cartRoutes = require("./routes/cart.routes");

@@ -117,6 +117,12 @@ const Checkout = () => {
 
 									// Should see the response we sent back from the server in the browser console
 									console.log("RESPONSE FROM SERVER: ", response);
+									if(response.data.url) {
+										let decoded = decodeURI(response.data.url);
+										window.location.assign(decoded);
+										
+										console.log('DECODED', decoded);
+									}
 								}}>
 								Confirm Checkout
 							</button>
