@@ -1,5 +1,5 @@
 // import Cart from "../Frontend/src/pages/Cart"
-const fs = require("node:fs");
+const fs = require("fs");
 // This is your test secret API key.
 const stripe = require("stripe")("sk_test_51MQg97Ipd7r3FnqnO5KhLULIzxDxRKcbJD9vNOfK9DZ8c4YJi7ISum1EV56rzJKpqC5qVBjyovezME2HSDchczab002fkVuyCf");
 const YOUR_DOMAIN = "http://localhost:3000";
@@ -22,11 +22,10 @@ async function createStripeProduct(product, options = {}) {
 }
 
 async function createStripeProductPrice(product, stripeProductId, options = {}) {
-	const productPrice = product.price * 100;
+	const productPrice = Math.round(product.price * 100);
 
 	const price = await stripe.prices
 		.create({
-			// unit_amount_decimal: productPrice.toString(),
 			unit_amount: productPrice,
 			currency: "usd",
 			billing_scheme: "per_unit",
@@ -61,7 +60,6 @@ async function cleanupDuplicateStripeProducts(productMatches) {
 		if (i > 0) {
 			if (productMatches[i]?.default_price) {
 				await stripe.prices.update(productMatches[i].default_price, { active: false }).catch((err) => err);
-				// await stripe.products.update(productMatches[i].id, { default_price: null }).catch((err) => err);
 			}
 			// deactivate all prices matching a product to delete
 			await stripe.prices
@@ -118,28 +116,28 @@ app.use(express.urlencoded({ extended: true }));
 // New Route On Express server For POST Request To Endpoint '/CheckoutFinal'
 // Runs Async Function That Creates Checkout Session On Stripe Platform
 
-app.post("/CheckoutFinal", async (req, res) => {
-	console.log("b");
+// app.post("/CheckoutFinal", async (req, res) => {
+// 	console.log("b");
 
-	// Method To Create Checkout Session That Takes Object As Argument That Contains Information
-	const session = await stripe.checkout.sessions.create({
-		line_items: [
-			{
-				// Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-				// price: 'total',
-				// quantity: 'quantity',
-			},
-		],
-		mode: "payment",
-		success_url: `${YOUR_DOMAIN}?success=true`,
-		cancel_url: `${YOUR_DOMAIN}?canceled=true`,
-		automatic_tax: { enabled: true },
-	});
+// 	// Method To Create Checkout Session That Takes Object As Argument That Contains Information
+// 	const session = await stripe.checkout.sessions.create({
+// 		line_items: [
+// 			{
+// 				// Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+// 				// price: 'total',
+// 				// quantity: 'quantity',
+// 			},
+// 		],
+// 		mode: "payment",
+// 		success_url: `${YOUR_DOMAIN}?success=true`,
+// 		cancel_url: `${YOUR_DOMAIN}?canceled=true`,
+// 		automatic_tax: { enabled: true },
+// 	});
 
-	// Checkout Session URL Extracted From Response Of Stripe API Then Sent Back To Client In Response Of Endpoint In JSON Format
-	res.json({ url: session.url });
-	// res.redirect(303, session.url);
-});
+// 	// Checkout Session URL Extracted From Response Of Stripe API Then Sent Back To Client In Response Of Endpoint In JSON Format
+// 	res.json({ url: session.url });
+// 	// res.redirect(303, session.url);
+// });
 // require('./routes/cart.routes');
 
 app.get("/products", async function (req, res) {
@@ -160,130 +158,7 @@ app.get("/products", async function (req, res) {
 	res.status(200).json({ message: "Success", products, length: products.length });
 });
 
-// app.post("/products", async function (req, res) {
-// 	// console.log("REQUEST DATA: ", req.body);
-
-// 	const products = req.body.products;
-// 	const mutatedProducts = [];
-
-// 	async function cleanupDuplicateProducts(productMatches) {
-// 		for (let i = 0; i < productMatches.length; i++) {
-// 			if (i > 0) {
-// 				if (productMatches[i]?.default_price) {
-// 					await stripe.prices.update(productMatches[i].default_price, { active: false }).catch((err) => err);
-// 					// await stripe.products.update(productMatches[i].id, { default_price: null }).catch((err) => err);
-// 				}
-
-// 				// deactivate all prices matching a product to delete
-// 				await stripe.prices
-// 					.search({
-// 						query: `active:\'true\' AND product:\'${productMatches[i].id}\'`,
-// 					})
-// 					.then(async (prices) => {
-// 						if (prices.length > 0) {
-// 							for (let price of prices) {
-// 								await stripe.prices.update(price.id, { active: false }).catch((err) => err);
-// 							}
-// 						}
-// 					})
-// 					.catch((err) => ({ error: err }));
-
-// 				// try to delete product
-// 				await stripe.products.del(productMatches[i].id).catch((err) => {
-// 					console.log("ERROR DELETING PRODUCT: ", productMatches[i].id);
-// 					return { error: err };
-// 				});
-// 			}
-// 		}
-
-// 		// return array with "primary" entry only
-// 		return [productMatches[0]];
-// 	}
-
-// 	for (const product of products) {
-// 		console.log(`${product.title}: ${product.id}`);
-// 		let productPriceId;
-
-// 		let productMatches = await stripe.products
-// 			.search({
-// 				query: `active:\'true\' AND metadata[\'data_id\']:\'${product.id}\'`,
-// 			})
-// 			.then(async (m) => {
-// 				if (m.data?.length > 0) return m.data;
-
-// 				let retryMatch = await stripe.products
-// 					.search({
-// 						query: `active:\'true\' AND name:\'${product.title}\'`,
-// 					})
-// 					.then((m) => m.data)
-// 					.catch((err) => ({ error: err }));
-
-// 				return retryMatch;
-// 			})
-// 			.catch((err) => ({ error: err }));
-
-// 		if (!productMatches?.error && productMatches.length > 0) {
-// 			// cleanup products
-// 			if (productMatches.length > 1) {
-// 				productMatches = await cleanupDuplicateProducts(productMatches);
-// 			}
-
-// 			if (!productMatches[0]?.metadata?.data_id && !productMatches[0]?.metadata?.product_title) {
-// 				const updates = {
-// 					desciption: product.desciption,
-// 					metadata: {
-// 						data_id: Number.parseInt(product.id),
-// 						product_title: product.title,
-// 					},
-// 				};
-
-// 				if (product?.image && updates?.images?.length === 0) updates.images = [`${YOUR_DOMAIN}${product.image.slice(1)}`];
-
-// 				const stripeProductUpdate = await stripe.products.update(productMatches[0].id, updates).catch((err) => ({ error: err }));
-// 				if (!stripeProductUpdate?.error) productMatches = [stripeProductUpdate];
-// 			}
-
-// 			if (productMatches[0]?.default_price) {
-// 				productPriceId = productMatches[0].default_price;
-// 			} else {
-// 				let matchingPriceArr = await stripe.prices
-// 					.search({
-// 						query: `active:\'true\' AND product:\'${productMatches[0].id}\'`,
-// 					})
-// 					.catch((err) => ({ error: err }));
-
-// 				if (!matchingPriceArr.error && matchingPriceArr.length > 0) {
-// 					productPriceId = matchingPriceArr[0].id;
-// 				} else {
-// 					const newProductPrice = await createStripeProductPrice(product, productMatches[0].id);
-// 					if (!newProductPrice?.error) productPriceId = newProductPrice.id;
-// 				}
-
-// 				await stripe.products.update(productMatches[0].id, { default_price: productPriceId }).catch((err) => ({ error: err }));
-// 			}
-
-// 			mutatedProducts.push({ ...product, priceId: productPriceId });
-// 		} else {
-// 			const newProdAndPrice = await createStripeProductAndPrice(product).catch((err) => err);
-
-// 			if (!newProdAndPrice?.error) {
-// 				mutatedProducts.push({ ...product, priceId: newProdAndPrice.price.id });
-// 			}
-// 		}
-// 	}
-
-// 	// console.log("MUTATED PRODUCTS", mutatedProducts);
-
-// 	if (res.body?.exportToFile) {
-// 		let exportFile = res.body?.exportFile ?? "updatedProducts.js";
-// 		fs.writeFileSync(exportFile, `let products = ${JSON.stringify(mutatedProducts)}`, { encoding: "utf8", flag: "w" });
-// 	}
-
-// 	res.status(200).json({ message: "Success", products: mutatedProducts });
-// });
-
 app.post("/products/seed", async function (req, res) {
-	// console.log("REQUEST DATA: ", req.body);
 	const exportToFile = req.body?.exportToFile ?? false;
 	const cleanupDuplicates = req.body?.removeDuplicates ?? false;
 	const products = req.body.products ?? [];
@@ -339,7 +214,7 @@ app.post("/products/seed", async function (req, res) {
 				// find matching prices
 				let matchingPriceArr = await stripe.prices
 					.search({
-						query: `active:\'true\' AND product:\'${productMatches[0].id}\' AND unit_amount:\'${product.price * 100}\'`,
+						query: `active:\'true\' AND product:\'${productMatches[0].id}\' AND unit_amount:\'${Math.round(product.price * 100)}\'`,
 					})
 					.catch((err) => ({ error: err }));
 
@@ -354,21 +229,27 @@ app.post("/products/seed", async function (req, res) {
 				await stripe.products.update(productMatches[0].id, { default_price: productPriceId }).catch((err) => ({ error: err }));
 			}
 
-			mutatedProducts.push({ ...product, priceId: productPriceId });
+			// uncomment following lines if you need to replace all prices for some reason
+			// await stripe.prices.update(productPriceId, { active: false }).catch((err) => err);
+			// let replacePrice = await createStripeProductPrice(product, productMatches[0].id);
+			// if (!replacePrice?.error) {
+			// 	productPriceId = replacePrice.id;
+			// 	await stripe.products.update(productMatches[0].id, { default_price: productPriceId }).catch((err) => err);
+			// }
 		} else {
 			const newProdAndPrice = await createStripeProductAndPrice(product).catch((err) => err);
-
-			if (!newProdAndPrice?.error) {
-				mutatedProducts.push({ ...product, priceId: newProdAndPrice.price.id });
-			}
+			if (!newProdAndPrice?.error) productPriceId = newProdAndPrice.price.id;
 		}
+
+		mutatedProducts.push({ ...product, priceId: productPriceId });
 	}
 
-	console.log("MUTATED PRODUCTS", mutatedProducts);
+	// console.log("MUTATED PRODUCTS", mutatedProducts);
 
 	// optionally export data (products array with priceId appended to each product) to local file:
 	if (exportToFile) {
 		const exportFile = res.body?.exportFile ?? "updatedProducts.js";
+		// copy array insde file over to json file after to update local products
 		fs.writeFileSync(exportFile, `let products = ${JSON.stringify(mutatedProducts)}`, { encoding: "utf8", flag: "w" });
 	}
 
@@ -377,8 +258,8 @@ app.post("/products/seed", async function (req, res) {
 
 app.post("/checkout", async (req, res) => {
 	// Data sent from frontend axios request in data param is accessed on req.body
-	console.log("REQUEST DATA: ", req.body);
-	console.log("REQUEST QUERY: ", req.query);
+	// console.log("REQUEST DATA: ", req.body);
+	// console.log("REQUEST QUERY: ", req.query);
 	// console.log should be visible in your server terminal
 
 	async function createStripeShipping(amount, options = {}) {
@@ -413,7 +294,6 @@ app.post("/checkout", async (req, res) => {
 
 	const stripeShipping = await createStripeShipping(shipping);
 
-	// 	console.log("STRIPE FORMATTED PRODUCTS", stripeProducts);
 	// 	// you would likely want to handle stripe here and now have access to the data sent over
 	const session = await stripe.checkout.sessions.create({
 		line_items: stripeProducts,
@@ -430,12 +310,13 @@ app.post("/checkout", async (req, res) => {
 		],
 	});
 
-	// 	console.log("SESSION: ", session);
 	// 	// res.redirect(303, session.url);
 	// 	// send back successful status of 200 and whatever data we want to send back -- so an object with message in this case
 	res.status(200).json({ message: "Success", url: session.url, id: session.id });
 	// });
 });
+
+// this is pretty much the compbination of /checkout and /product/seed and the various functions I broke it up into.  I left this below just incase for whatever reason
 
 // app.post("/checkout", async (req, res) => {
 // 	// Data sent from frontend axios request in data param is accessed on req.body
@@ -584,45 +465,6 @@ app.post("/checkout", async (req, res) => {
 // 	// send back successful status of 200 and whatever data we want to send back -- so an object with message in this case
 // 	res.status(200).json({ message: "Success", url: session.url, id: session.id });
 // });
-
-app.post("/checkout/items", async (req, res) => {
-	// Data sent from frontend axios request in data param is accessed on req.body
-	console.log("REQUEST DATA: ", req.body);
-
-	let session;
-
-	if (res?.body?.id) {
-		session = await stripe.checkout.sessions.retrieve(res.body.id);
-	}
-
-	console.log("SESSION ITEMS: ", session);
-
-	// send back successful status of 200 and whatever data we want to send back -- so an object with message in this case
-	res.status(200).json({ message: "Session Items", items: session.data });
-});
-
-app.get("/checkout/success", async (req, res) => {
-	res.status(200).send("Success");
-});
-
-app.get("/checkout/cancel", async (req, res) => {
-	res.status(200).send("Cancelled");
-});
-
-app.post("/info", function (req, res) {
-	console.log("Info REQ", req.body, JSON.stringify(req.body));
-
-	// fs.writeFileSync("fieldTest.js", `let fields = ${JSON.stringify(req.body)}`, { encoding: "utf8", flag: "w" });
-
-	// for (const key in req.body) {
-	// 	fs.appendFileSync(
-	// 		"fieldTest.js",
-	// 		`${key}: ${req.body[key]},\n`
-	// 	);
-	// }
-
-	res.sendStatus(200);
-});
 
 const cartRoutes = require("./routes/cart.routes");
 app.use("/cart", cartRoutes);
