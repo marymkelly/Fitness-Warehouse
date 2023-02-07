@@ -26,8 +26,10 @@ async function createStripeProductPrice(product, stripeProductId, options = {}) 
 
 	const price = await stripe.prices
 		.create({
-			unit_amount_decimal: productPrice.toString(),
+			// unit_amount_decimal: productPrice.toString(),
+			unit_amount: productPrice,
 			currency: "usd",
+			billing_scheme: "per_unit",
 			product: stripeProductId,
 			metadata: {
 				product_title: product.title,
@@ -51,8 +53,6 @@ async function createStripeProductAndPrice(product, productOptions = {}, priceOp
 
 	stripeProduct = await stripe.products.update(stripeProduct.id, { default_price: stripeProductPrice.id });
 
-	console.log("STRIPE PROD", stripeProduct);
-
 	return { product: stripeProduct, price: stripeProductPrice };
 }
 
@@ -61,6 +61,7 @@ async function cleanupDuplicateStripeProducts(productMatches) {
 		if (i > 0) {
 			if (productMatches[i]?.default_price) {
 				await stripe.prices.update(productMatches[i].default_price, { active: false }).catch((err) => err);
+				// await stripe.products.update(productMatches[i].id, { default_price: null }).catch((err) => err);
 			}
 			// deactivate all prices matching a product to delete
 			await stripe.prices
@@ -159,126 +160,127 @@ app.get("/products", async function (req, res) {
 	res.status(200).json({ message: "Success", products, length: products.length });
 });
 
-app.post("/products", async function (req, res) {
-	// console.log("REQUEST DATA: ", req.body);
+// app.post("/products", async function (req, res) {
+// 	// console.log("REQUEST DATA: ", req.body);
 
-	const products = req.body.products;
-	const mutatedProducts = [];
+// 	const products = req.body.products;
+// 	const mutatedProducts = [];
 
-	async function cleanupDuplicateProducts(productMatches) {
-		for (let i = 0; i < productMatches.length; i++) {
-			if (i > 0) {
-				if (productMatches[i]?.default_price) {
-					await stripe.prices.update(productMatches[i]?.default_price, { active: false }).catch((err) => err);
-				}
+// 	async function cleanupDuplicateProducts(productMatches) {
+// 		for (let i = 0; i < productMatches.length; i++) {
+// 			if (i > 0) {
+// 				if (productMatches[i]?.default_price) {
+// 					await stripe.prices.update(productMatches[i].default_price, { active: false }).catch((err) => err);
+// 					// await stripe.products.update(productMatches[i].id, { default_price: null }).catch((err) => err);
+// 				}
 
-				// deactivate all prices matching a product to delete
-				await stripe.prices
-					.search({
-						query: `active:\'true\' AND product:\'${productMatches[i].id}\'`,
-					})
-					.then(async (prices) => {
-						if (prices.length > 0) {
-							for (let price of prices) {
-								await stripe.prices.update(price.id, { active: false }).catch((err) => err);
-							}
-						}
-					})
-					.catch((err) => ({ error: err }));
+// 				// deactivate all prices matching a product to delete
+// 				await stripe.prices
+// 					.search({
+// 						query: `active:\'true\' AND product:\'${productMatches[i].id}\'`,
+// 					})
+// 					.then(async (prices) => {
+// 						if (prices.length > 0) {
+// 							for (let price of prices) {
+// 								await stripe.prices.update(price.id, { active: false }).catch((err) => err);
+// 							}
+// 						}
+// 					})
+// 					.catch((err) => ({ error: err }));
 
-				// try to delete product
-				await stripe.products.del(productMatches[i].id).catch((err) => {
-					console.log("ERROR DELETING PRODUCT: ", productMatches[i].id);
-					return { error: err };
-				});
-			}
-		}
+// 				// try to delete product
+// 				await stripe.products.del(productMatches[i].id).catch((err) => {
+// 					console.log("ERROR DELETING PRODUCT: ", productMatches[i].id);
+// 					return { error: err };
+// 				});
+// 			}
+// 		}
 
-		// return array with "primary" entry only
-		return [productMatches[0]];
-	}
+// 		// return array with "primary" entry only
+// 		return [productMatches[0]];
+// 	}
 
-	for (const product of products) {
-		console.log(`${product.title}: ${product.id}`);
-		let productPriceId;
+// 	for (const product of products) {
+// 		console.log(`${product.title}: ${product.id}`);
+// 		let productPriceId;
 
-		let productMatches = await stripe.products
-			.search({
-				query: `active:\'true\' AND metadata[\'data_id\']:\'${product.id}\'`,
-			})
-			.then(async (m) => {
-				if (m.data?.length > 0) return m.data;
+// 		let productMatches = await stripe.products
+// 			.search({
+// 				query: `active:\'true\' AND metadata[\'data_id\']:\'${product.id}\'`,
+// 			})
+// 			.then(async (m) => {
+// 				if (m.data?.length > 0) return m.data;
 
-				let retryMatch = await stripe.products
-					.search({
-						query: `active:\'true\' AND name:\'${product.title}\'`,
-					})
-					.then((m) => m.data)
-					.catch((err) => ({ error: err }));
+// 				let retryMatch = await stripe.products
+// 					.search({
+// 						query: `active:\'true\' AND name:\'${product.title}\'`,
+// 					})
+// 					.then((m) => m.data)
+// 					.catch((err) => ({ error: err }));
 
-				return retryMatch;
-			})
-			.catch((err) => ({ error: err }));
+// 				return retryMatch;
+// 			})
+// 			.catch((err) => ({ error: err }));
 
-		if (!productMatches?.error && productMatches.length > 0) {
-			// cleanup products
-			if (productMatches.length > 1) {
-				productMatches = await cleanupDuplicateProducts(productMatches);
-			}
+// 		if (!productMatches?.error && productMatches.length > 0) {
+// 			// cleanup products
+// 			if (productMatches.length > 1) {
+// 				productMatches = await cleanupDuplicateProducts(productMatches);
+// 			}
 
-			if (!productMatches[0]?.metadata?.data_id && !productMatches[0]?.metadata?.product_title) {
-				const updates = {
-					desciption: product.desciption,
-					metadata: {
-						data_id: Number.parseInt(product.id),
-						product_title: product.title,
-					},
-				};
+// 			if (!productMatches[0]?.metadata?.data_id && !productMatches[0]?.metadata?.product_title) {
+// 				const updates = {
+// 					desciption: product.desciption,
+// 					metadata: {
+// 						data_id: Number.parseInt(product.id),
+// 						product_title: product.title,
+// 					},
+// 				};
 
-				if (product?.image && updates?.images?.length === 0) updates.images = [`${YOUR_DOMAIN}${product.image.slice(1)}`];
+// 				if (product?.image && updates?.images?.length === 0) updates.images = [`${YOUR_DOMAIN}${product.image.slice(1)}`];
 
-				const stripeProductUpdate = await stripe.products.update(productMatches[0].id, updates).catch((err) => ({ error: err }));
-				if (!stripeProductUpdate?.error) productMatches = [stripeProductUpdate];
-			}
+// 				const stripeProductUpdate = await stripe.products.update(productMatches[0].id, updates).catch((err) => ({ error: err }));
+// 				if (!stripeProductUpdate?.error) productMatches = [stripeProductUpdate];
+// 			}
 
-			if (productMatches[0]?.default_price) {
-				productPriceId = productMatches[0].default_price;
-			} else {
-				let matchingPriceArr = await stripe.prices
-					.search({
-						query: `active:\'true\' AND product:\'${productMatches[0].id}\'`,
-					})
-					.catch((err) => ({ error: err }));
+// 			if (productMatches[0]?.default_price) {
+// 				productPriceId = productMatches[0].default_price;
+// 			} else {
+// 				let matchingPriceArr = await stripe.prices
+// 					.search({
+// 						query: `active:\'true\' AND product:\'${productMatches[0].id}\'`,
+// 					})
+// 					.catch((err) => ({ error: err }));
 
-				if (!matchingPriceArr.error && matchingPriceArr.length > 0) {
-					productPriceId = matchingPriceArr[0].id;
-				} else {
-					const newProductPrice = await createStripeProductPrice(product, productMatches[0].id);
-					if (!newProductPrice?.error) productPriceId = newProductPrice.id;
-				}
+// 				if (!matchingPriceArr.error && matchingPriceArr.length > 0) {
+// 					productPriceId = matchingPriceArr[0].id;
+// 				} else {
+// 					const newProductPrice = await createStripeProductPrice(product, productMatches[0].id);
+// 					if (!newProductPrice?.error) productPriceId = newProductPrice.id;
+// 				}
 
-				await stripe.products.update(productMatches[0].id, { default_price: productPriceId }).catch((err) => ({ error: err }));
-			}
+// 				await stripe.products.update(productMatches[0].id, { default_price: productPriceId }).catch((err) => ({ error: err }));
+// 			}
 
-			mutatedProducts.push({ ...product, priceId: productPriceId });
-		} else {
-			const newProdAndPrice = await createStripeProductAndPrice(product).catch((err) => err);
+// 			mutatedProducts.push({ ...product, priceId: productPriceId });
+// 		} else {
+// 			const newProdAndPrice = await createStripeProductAndPrice(product).catch((err) => err);
 
-			if (!newProdAndPrice?.error) {
-				mutatedProducts.push({ ...product, priceId: newProdAndPrice.price.id });
-			}
-		}
-	}
+// 			if (!newProdAndPrice?.error) {
+// 				mutatedProducts.push({ ...product, priceId: newProdAndPrice.price.id });
+// 			}
+// 		}
+// 	}
 
-	// console.log("MUTATED PRODUCTS", mutatedProducts);
+// 	// console.log("MUTATED PRODUCTS", mutatedProducts);
 
-	if (res.body?.exportToFile) {
-		let exportFile = res.body?.exportFile ?? "updatedProducts.js";
-		fs.writeFileSync(exportFile, `let products = ${JSON.stringify(mutatedProducts)}`, { encoding: "utf8", flag: "w" });
-	}
+// 	if (res.body?.exportToFile) {
+// 		let exportFile = res.body?.exportFile ?? "updatedProducts.js";
+// 		fs.writeFileSync(exportFile, `let products = ${JSON.stringify(mutatedProducts)}`, { encoding: "utf8", flag: "w" });
+// 	}
 
-	res.status(200).json({ message: "Success", products: mutatedProducts });
-});
+// 	res.status(200).json({ message: "Success", products: mutatedProducts });
+// });
 
 app.post("/products/seed", async function (req, res) {
 	// console.log("REQUEST DATA: ", req.body);
@@ -337,7 +339,7 @@ app.post("/products/seed", async function (req, res) {
 				// find matching prices
 				let matchingPriceArr = await stripe.prices
 					.search({
-						query: `active:\'true\' AND product:\'${productMatches[0].id}\' AND unit_amount_decimal:\'${product.price * 100}\'`,
+						query: `active:\'true\' AND product:\'${productMatches[0].id}\' AND unit_amount:\'${product.price * 100}\'`,
 					})
 					.catch((err) => ({ error: err }));
 
@@ -380,11 +382,12 @@ app.post("/checkout", async (req, res) => {
 	// console.log should be visible in your server terminal
 
 	async function createStripeShipping(amount, options = {}) {
+		let amountInCents = amount * 100;
 		const shipping = await stripe.shippingRates
 			.create({
 				display_name: "Ground Shipping",
-				type: "Fixed Amount",
-				fixed_amount: { amount, currency: "usd" },
+				type: "fixed_amount",
+				fixed_amount: { amount: amountInCents, currency: "usd" },
 				...options,
 			})
 			.catch((err) => ({ error: err }));
@@ -396,8 +399,6 @@ app.post("/checkout", async (req, res) => {
 	let shipping = req.body?.shipping ?? 0.0;
 
 	let stripeProducts = [];
-
-	console.log("PRODUCTS", products);
 
 	if (products.length > 0) {
 		for (let product of products) {
@@ -422,9 +423,11 @@ app.post("/checkout", async (req, res) => {
 		success_url: `${YOUR_DOMAIN}?success=true`,
 		cancel_url: `${YOUR_DOMAIN}?canceled=true`,
 		// automatic_tax: { enabled: true },
-		// shipping_options: {
-		// 	shipping_rate: stripeShipping.id,
-		// },
+		shipping_options: [
+			{
+				shipping_rate: stripeShipping.id,
+			},
+		],
 	});
 
 	// 	console.log("SESSION: ", session);

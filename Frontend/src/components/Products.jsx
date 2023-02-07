@@ -34,46 +34,46 @@ const Products = () => {
 	console.log("DATA", data);
 
 	// useEffect(() => {
-	// const productArray = data;
+	// 	const productArray = data;
 
-	// async function seedProducts(products) {
-	// 	let response = await axios({
-	// 		method: "post",
-	// 		url: "http://localhost:3001/products/seed",
-	// 		data: {
-	// 			products,
-	// 			removeDuplicates: true,
-	// 			exportToFile: true,
-	// 		},
-	// 	}).catch((error) => error.response);
+	// 	async function seedProducts(products) {
+	// 		let response = await axios({
+	// 			method: "post",
+	// 			url: "http://localhost:3001/products/seed",
+	// 			data: {
+	// 				products,
+	// 				removeDuplicates: true,
+	// 				exportToFile: true,
+	// 			},
+	// 		}).catch((error) => error.response);
 
-	// 	console.log("Response from /products: ", response);
-	// }
+	// 		console.log("Response from /products: ", response);
+	// 	}
 
-	// async function checkProducts(products) {
-	// 	let response = await axios({
-	// 		method: "post",
-	// 		url: "http://localhost:3001/products",
-	// 		data: {
-	// 			products,
-	// 		},
-	// 	}).catch((error) => error.response);
+	// 	async function checkProducts(products) {
+	// 		let response = await axios({
+	// 			method: "post",
+	// 			url: "http://localhost:3001/products",
+	// 			data: {
+	// 				products,
+	// 			},
+	// 		}).catch((error) => error.response);
 
-	// 	console.log("Response from /products: ", response);
-	// }
+	// 		console.log("Response from /products: ", response);
+	// 	}
 
-	// async function getProducts() {
-	// 	let response = await axios({
-	// 		method: "get",
-	// 		url: "http://localhost:3001/products",
-	// 	}).catch((error) => error.response);
+	// 	async function getProducts() {
+	// 		let response = await axios({
+	// 			method: "get",
+	// 			url: "http://localhost:3001/products",
+	// 		}).catch((error) => error.response);
 
-	// 	console.log("GET /products: ", response);
-	// }
+	// 		console.log("GET /products: ", response);
+	// 	}
 
-	// seedProducts(productArray);
-	// checkProducts(productArray);
-	// getProducts(productArray);
+	// 	seedProducts(productArray);
+	// 	// checkProducts(productArray);
+	// 	// getProducts(productArray);
 	// }, []);
 
 	// Pre-Selects Category To Use As Future Link

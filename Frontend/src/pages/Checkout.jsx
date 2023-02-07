@@ -55,7 +55,7 @@ const Checkout = () => {
 
 		// Cart Total
 		let subtotal = 0;
-		let shipping = 30.0;
+		let shipping = 30.00;
 		let totalItems = 0;
 
 		state.forEach((item) => {
